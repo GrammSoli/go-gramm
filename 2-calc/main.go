@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -8,15 +9,10 @@ import (
 	"strings"
 )
 
-const (
-	promt_choise  = "AVG - среднее, SUM - сумма, MED - медиана"
-	promt_numbers = "Ведите числа в  строку, через запятую (1,2)"
-)
-
 func main() {
 	// Проверим, что аргументы командной строки переданы
 	if len(os.Args) < 3 {
-		fmt.Println("Неверное количество аргументов. Пример использования: ./script <операция> <числа через запятую>")
+		fmt.Println("Неверное количество аргументов. Пример использования: ./calc <операция> <числа через запятую>")
 		return
 	}
 
@@ -41,9 +37,14 @@ func main() {
 	fmt.Printf("Ваш(-а) %s: %.0f\n", choice, result)
 }
 
+// Функция для расчета операции
 func calculate(choice string, numbers string) (float64, error) {
-	str := strings.Split(numbers, ",")
+	// Проверяем на пустую строку
+	if numbers == "" {
+		return 0, errors.New("введены пустые числа")
+	}
 
+	str := strings.Split(numbers, ",")
 	var intNumbers []int
 	for _, numStr := range str {
 		num, err := strconv.Atoi(numStr)
@@ -54,8 +55,13 @@ func calculate(choice string, numbers string) (float64, error) {
 		intNumbers = append(intNumbers, num)
 	}
 
+	// Обрабатываем выбор операции
 	switch choice {
 	case "AVG":
+		// Проверка на пустой массив чисел
+		if len(intNumbers) == 0 {
+			return 0, errors.New("нет чисел для расчета среднего")
+		}
 		var sum int
 		for _, num := range intNumbers {
 			sum += num
@@ -71,6 +77,10 @@ func calculate(choice string, numbers string) (float64, error) {
 		return float64(sum), nil
 
 	case "MED":
+		// Проверка на пустой массив чисел
+		if len(intNumbers) == 0 {
+			return 0, errors.New("нет чисел для расчета медианы")
+		}
 		sort.Ints(intNumbers)
 		n := len(intNumbers)
 		var median float64
