@@ -52,7 +52,7 @@ func main() {
 		fmt.Println("Вы выбрали исходную валюту:", from)
 		fmt.Println("Ваша сумма:", amount)
 		fmt.Println("Вы выбрали целевую валюту:", to)
-		result := convert(from, to, amount, rates)
+		result := convert(from, to, amount, &rates)
 		fmt.Printf("%.2f %s = %.2f %s\n", amount, from, result, to)
 		isRepeateCalculation := checkRepeatCallculation()
 		if !isRepeateCalculation {
@@ -93,8 +93,8 @@ func getAvailableCurrencies(from string) string {
 	return "USD/EUR/RUB"
 }
 
-func convert(from string, to string, amount float64, rates conversion) float64 {
-	if toMap, ok := rates[from]; ok {
+func convert(from string, to string, amount float64, rates *conversion) float64 {
+	if toMap, ok := (*rates)[from]; ok {
 		if rate, ok := toMap[to]; ok {
 			return amount * rate
 		}
