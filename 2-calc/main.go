@@ -1,8 +1,8 @@
 package main
 
 import (
-	"errors"
 	"fmt"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -14,38 +14,31 @@ const (
 )
 
 func main() {
-	for {
-		choice, err := getUserchoosingOperation(promt_choise)
-		if err != nil {
-			fmt.Println("Неверный выбор, попробуйте еще раз.")
-			continue
-		}
-		numbers := getUserParseNumbers(promt_numbers)
-		result, err := calculate(choice, numbers)
-		fmt.Printf("Ваш(-а) %s: %.0f", choice, result)
-		isRepeateCalculation := checkRepeatCallculation()
-		if !isRepeateCalculation {
-			break
-		}
+	// Проверим, что аргументы командной строки переданы
+	if len(os.Args) < 3 {
+		fmt.Println("Неверное количество аргументов. Пример использования: ./script <операция> <числа через запятую>")
+		return
 	}
-}
 
-func getUserchoosingOperation(promt_choise string) (string, error) {
-	fmt.Println(promt_choise)
-	var choice string
-	fmt.Scan(&choice)
-	choice = strings.ToUpper(choice)
+	// Получаем операцию и числа из аргументов
+	choice := strings.ToUpper(os.Args[1])
+	numbers := os.Args[2]
+
+	// Проверяем правильность выбранной операции
 	if choice != "AVG" && choice != "SUM" && choice != "MED" {
-		return "", errors.New("NO_PARAMETRS")
+		fmt.Println("Неверный выбор операции. Используйте AVG, SUM или MED.")
+		return
 	}
-	return choice, nil
-}
 
-func getUserParseNumbers(promt_numbers string) string {
-	fmt.Println(promt_numbers)
-	var numbers string
-	fmt.Scan(&numbers)
-	return numbers
+	// Рассчитываем результат
+	result, err := calculate(choice, numbers)
+	if err != nil {
+		fmt.Println("Ошибка при расчете:", err)
+		return
+	}
+
+	// Выводим результат
+	fmt.Printf("Ваш(-а) %s: %.0f\n", choice, result)
 }
 
 func calculate(choice string, numbers string) (float64, error) {
@@ -63,7 +56,6 @@ func calculate(choice string, numbers string) (float64, error) {
 
 	switch choice {
 	case "AVG":
-
 		var sum int
 		for _, num := range intNumbers {
 			sum += num
@@ -72,7 +64,6 @@ func calculate(choice string, numbers string) (float64, error) {
 		return avg, nil
 
 	case "SUM":
-
 		var sum int
 		for _, num := range intNumbers {
 			sum += num
@@ -80,7 +71,6 @@ func calculate(choice string, numbers string) (float64, error) {
 		return float64(sum), nil
 
 	case "MED":
-
 		sort.Ints(intNumbers)
 		n := len(intNumbers)
 		var median float64
@@ -92,13 +82,4 @@ func calculate(choice string, numbers string) (float64, error) {
 		return median, nil
 	}
 	return 0, nil
-}
-func checkRepeatCallculation() bool {
-	var userChoise string
-	fmt.Println("Вы хотите сделать еще рассчет? (Y/n): ")
-	fmt.Scan(&userChoise)
-	if userChoise == "y" || userChoise == "Y" {
-		return true
-	}
-	return false
 }
