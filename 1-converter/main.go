@@ -7,12 +7,26 @@ import (
 )
 
 const (
-	usdToEur     = 0.86
-	usdToRub     = 79.0
 	promt_from   = "Введите исходную валюту (USD/EUR/RUB):"
 	promt_amount = "Введите сумму: "
-	promt_to     = "Введите целевую валюту (USD/EUR/RUB):"
 )
+
+type conversion = map[string]map[string]float64
+
+var rates = conversion{
+	"USD": {
+		"EUR": 0.86,
+		"RUB": 79.0,
+	},
+	"EUR": {
+		"USD": 1 / 0.86,
+		"RUB": 79.0 / 0.86,
+	},
+	"RUB": {
+		"USD": 1 / 79.0,
+		"EUR": 0.86 / 79.0,
+	},
+}
 
 func main() {
 	for {
@@ -38,7 +52,7 @@ func main() {
 		fmt.Println("Вы выбрали исходную валюту:", from)
 		fmt.Println("Ваша сумма:", amount)
 		fmt.Println("Вы выбрали целевую валюту:", to)
-		result := convert(from, to, amount)
+		result := convert(from, to, amount, &rates)
 		fmt.Printf("%.2f %s = %.2f %s\n", amount, from, result, to)
 		isRepeateCalculation := checkRepeatCallculation()
 		if !isRepeateCalculation {
@@ -69,45 +83,20 @@ func getUserInputAmount(prompt string) (float64, error) {
 }
 
 func getAvailableCurrencies(from string) string {
-	switch from {
-	case "USD":
-		return "EUR/RUB"
-	case "EUR":
-		return "USD/RUB"
-	case "RUB":
-		return "USD/EUR"
-	default:
-		return "USD/EUR/RUB"
+	if toMap, ok := rates[from]; ok {
+		keys := make([]string, 0, len(toMap))
+		for k := range toMap {
+			keys = append(keys, k)
+		}
+		return strings.Join(keys, "/")
 	}
+	return "USD/EUR/RUB"
 }
 
-func convert(from string, to string, amount float64) float64 {
-	eurToRub := usdToRub / usdToEur
-
-	if from == to {
-		return amount
-	}
-	switch from {
-	case "USD":
-		switch to {
-		case "EUR":
-			return amount * usdToEur
-		case "RUB":
-			return amount * usdToRub
-		}
-	case "EUR":
-		switch to {
-		case "USD":
-			return amount / usdToEur
-		case "RUB":
-			return amount * eurToRub
-		}
-	case "RUB":
-		switch to {
-		case "USD":
-			return amount / usdToRub
-		case "EUR":
-			return amount / eurToRub
+func convert(from string, to string, amount float64, rates *conversion) float64 {
+	if toMap, ok := (*rates)[from]; ok {
+		if rate, ok := toMap[to]; ok {
+			return amount * rate
 		}
 	}
 	return 0
