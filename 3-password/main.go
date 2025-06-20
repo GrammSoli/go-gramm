@@ -3,10 +3,12 @@ package main
 import (
 	"fmt"
 
-	"go-gramm-4/account"
+	"go-gramm/3-password/account"
+	"go-gramm/3-password/files"
 )
 
 func main() {
+	files.WriteFile("Test", "text.txt")
 	login := promptData("Введите логин: ")
 	password := promptData("Введите пароль: ")
 	url := promptData("Введите url: ")

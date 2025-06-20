@@ -1,4 +1,4 @@
-module go-gramm-4
+module go-gramm/3-password
 
 go 1.22.2
 
