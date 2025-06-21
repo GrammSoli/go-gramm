@@ -3,6 +3,8 @@ package files
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 func ReadFile(name string) ([]byte, error) {
@@ -20,10 +22,15 @@ func WriteFile(content []byte, name string) {
 		fmt.Println(err)
 		return
 	}
+	defer file.Close()
 	_, err = file.Write(content)
 	if err != nil {
 		fmt.Println(err)
 	}
-	defer file.Close()
+
 	fmt.Println("Запись прошла успешно!")
+}
+
+func IsJSONFile(name string) bool {
+	return strings.EqualFold(filepath.Ext(name), ".json")
 }

@@ -31,10 +31,11 @@ func NewVault() *Vault {
 }
 
 func (vault *Vault) FindAccountsByUrl(url string) []Account {
+	url = strings.TrimSpace(strings.ToLower(url))
 	var accounts []Account
 	for _, account := range vault.Accounts {
 		isMatched := strings.Contains(account.Url, url)
-		if !isMatched {
+		if isMatched {
 			accounts = append(accounts, account)
 		}
 	}
