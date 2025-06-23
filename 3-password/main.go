@@ -4,12 +4,13 @@ import (
 	"fmt"
 
 	"go-gramm/3-password/account"
+	"go-gramm/3-password/files"
 
 	"github.com/fatih/color"
 )
 
 func main() {
-	vault := account.NewVault()
+	vault := account.NewVault(files.NewJsonDb("data.json"))
 Menu:
 	for {
 		variant := getMenu()
@@ -27,7 +28,7 @@ Menu:
 
 }
 
-func createAccount(vault *account.Vault) {
+func createAccount(vault *account.VaultWithDb) {
 	login := promptData("Введите логин: ")
 	password := promptData("Введите пароль: ")
 	url := promptData("Введите url: ")
@@ -57,7 +58,7 @@ func getMenu() float64 {
 	fmt.Scanln(&variant)
 	return variant
 }
-func findAccount(vault *account.Vault) {
+func findAccount(vault *account.VaultWithDb) {
 	url := promptData("Введите URL для поиска: ")
 	accounts := vault.FindAccountsByUrl(url)
 	if len(accounts) == 0 {
@@ -68,7 +69,7 @@ func findAccount(vault *account.Vault) {
 	}
 }
 
-func deleteAccount(vault *account.Vault) {
+func deleteAccount(vault *account.VaultWithDb) {
 	url := promptData("Введите URL для удаления: ")
 	isDeleted := vault.DeleteAccountByUrl(url)
 	if isDeleted {
