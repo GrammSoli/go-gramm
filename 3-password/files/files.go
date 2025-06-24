@@ -2,6 +2,7 @@ package files
 
 import (
 	"fmt"
+	"go-gramm/3-password/output"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,13 +30,14 @@ func (db *JsonDb) Read() ([]byte, error) {
 func (db *JsonDb) Write(content []byte) {
 	file, err := os.Create(db.filename)
 	if err != nil {
-		fmt.Println(err)
+		output.PrintError("Ошибка создания файла: " + err.Error())
 		return
 	}
 	defer file.Close()
 	_, err = file.Write(content)
 	if err != nil {
-		fmt.Println(err)
+		output.PrintError("Ошибка записи в файл: " + err.Error())
+		return
 	}
 
 	fmt.Println("Запись прошла успешно!")

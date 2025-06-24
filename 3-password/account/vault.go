@@ -2,12 +2,23 @@ package account
 
 import (
 	"encoding/json"
-	"go-gramm/3-password/files"
+	"go-gramm/3-password/output"
 	"strings"
 	"time"
-
-	"github.com/fatih/color"
 )
+
+type ByteReader interface {
+	Read() ([]byte, error)
+}
+
+type ByteWriter interface {
+	Write(content []byte)
+}
+
+type Db interface {
+	ByteReader
+	ByteWriter
+}
 
 type Vault struct {
 	Accounts  []Account `json:"accounts"`
@@ -15,10 +26,10 @@ type Vault struct {
 }
 type VaultWithDb struct {
 	Vault
-	db files.JsonDb
+	db Db
 }
 
-func NewVault(db *files.JsonDb) *VaultWithDb {
+func NewVault(db Db) *VaultWithDb {
 	file, err := db.Read()
 	if err != nil {
 		return &VaultWithDb{
@@ -26,24 +37,24 @@ func NewVault(db *files.JsonDb) *VaultWithDb {
 				Accounts:  []Account{},
 				UpdatedAt: time.Now(),
 			},
-			db: *db,
+			db: db,
 		}
 	}
 	var vault Vault
 	err = json.Unmarshal(file, &vault)
 	if err != nil {
-		color.Red(err.Error())
+		output.PrintError("Ошибка десериализации данных: " + err.Error())
 		return &VaultWithDb{
 			Vault: Vault{
 				Accounts:  []Account{},
 				UpdatedAt: time.Now(),
 			},
-			db: *db,
+			db: db,
 		}
 	}
 	return &VaultWithDb{
 		Vault: vault,
-		db:    *db,
+		db:    db,
 	}
 }
 
@@ -52,6 +63,18 @@ func (vault *VaultWithDb) FindAccountsByUrl(url string) []Account {
 	var accounts []Account
 	for _, account := range vault.Accounts {
 		isMatched := strings.Contains(account.Url, url)
+		if isMatched {
+			accounts = append(accounts, account)
+		}
+	}
+	return accounts
+}
+
+func (vault *VaultWithDb) FindAccounts(str string, checker func(Account, string) bool) []Account {
+	str = strings.TrimSpace(strings.ToLower(str))
+	var accounts []Account
+	for _, account := range vault.Accounts {
+		isMatched := checker(account, str)
 		if isMatched {
 			accounts = append(accounts, account)
 		}
@@ -92,7 +115,7 @@ func (vault *VaultWithDb) save() {
 	vault.UpdatedAt = time.Now()
 	data, err := vault.Vault.ToBytes()
 	if err != nil {
-		color.Red(err.Error())
+		output.PrintError("Ошибка сериализации данных: " + err.Error())
 	}
 	vault.db.Write(data)
 }
