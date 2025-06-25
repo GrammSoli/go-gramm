@@ -5,10 +5,12 @@ import (
 	"strings"
 
 	"go-gramm/3-password/account"
+	"go-gramm/3-password/encryptor"
 	"go-gramm/3-password/files"
 	"go-gramm/3-password/output"
 
 	"github.com/fatih/color"
+	"github.com/joho/godotenv"
 )
 
 var menu = map[string]func(*account.VaultWithDb){
@@ -26,7 +28,12 @@ func menuCounter() func() {
 }
 
 func main() {
-	vault := account.NewVault(files.NewJsonDb("data.json"))
+	err := godotenv.Load()
+	if err != nil {
+		output.PrintError("Ошибка загрузки .env файла: " + err.Error())
+		return
+	}
+	vault := account.NewVault(files.NewJsonDb("data.vault"), *encryptor.NewEncrypter())
 	counter := menuCounter()
 	// vault := account.NewVault(cloud.NewCloudDb("https://example.com/db")) - для облачной базы данных
 Menu:

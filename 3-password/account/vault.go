@@ -2,6 +2,7 @@ package account
 
 import (
 	"encoding/json"
+	"go-gramm/3-password/encryptor"
 	"go-gramm/3-password/output"
 	"strings"
 	"time"
@@ -26,10 +27,11 @@ type Vault struct {
 }
 type VaultWithDb struct {
 	Vault
-	db Db
+	db  Db
+	enc encryptor.Encryptor
 }
 
-func NewVault(db Db) *VaultWithDb {
+func NewVault(db Db, enc encryptor.Encryptor) *VaultWithDb {
 	file, err := db.Read()
 	if err != nil {
 		return &VaultWithDb{
@@ -37,11 +39,13 @@ func NewVault(db Db) *VaultWithDb {
 				Accounts:  []Account{},
 				UpdatedAt: time.Now(),
 			},
-			db: db,
+			db:  db,
+			enc: enc,
 		}
 	}
+	data := enc.Decrypt(file)
 	var vault Vault
-	err = json.Unmarshal(file, &vault)
+	err = json.Unmarshal(data, &vault)
 	if err != nil {
 		output.PrintError("Ошибка десериализации данных: " + err.Error())
 		return &VaultWithDb{
@@ -49,12 +53,14 @@ func NewVault(db Db) *VaultWithDb {
 				Accounts:  []Account{},
 				UpdatedAt: time.Now(),
 			},
-			db: db,
+			db:  db,
+			enc: enc,
 		}
 	}
 	return &VaultWithDb{
 		Vault: vault,
 		db:    db,
+		enc:   enc,
 	}
 }
 
@@ -114,8 +120,9 @@ func (vault *Vault) ToBytes() ([]byte, error) {
 func (vault *VaultWithDb) save() {
 	vault.UpdatedAt = time.Now()
 	data, err := vault.Vault.ToBytes()
+	encData := vault.enc.Encrypt(data)
 	if err != nil {
 		output.PrintError("Ошибка сериализации данных: " + err.Error())
 	}
-	vault.db.Write(data)
+	vault.db.Write(encData)
 }
