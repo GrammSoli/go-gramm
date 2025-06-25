@@ -56,4 +56,3 @@ func (e *Encryptor) Decrypt(encryptedStr []byte) []byte {
 	}
 	return plainText
 }
-strings.NewReplacer("http://", "", "https://", "").Replace(url)
